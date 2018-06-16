@@ -6,24 +6,36 @@ import numpy as np
 import matplotlib.pyplot as plt
 from discriminator import build_discriminator
 import scipy.stats as st
+import argparse
 
-EPS = 1e-12
-task="reflection_removal/"
-is_training=True
-continue_training=True
-hyper=True
 
-#os.system('nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp')
+parser = argparse.ArgumentParser()
+parser.add_argument("--task", default="reflection_removal", help="path to folder containing images")
+parser.add_argument("--data_syn_dir", default="/media/cecilia/DATA/reflection/train/", help="path to synthetic dataset")
+parser.add_argument("--data_real_dir", default="/media/cecilia/DATA/reflection/train_real/", help="path to real dataset")
+parser.add_argument("--is_hyper", default=1, type=int, help="")
+parser.add_argument("--is_training", default=1, help="training or testing")
+parser.add_argument("--continue_training", action="store_true", help="search for checkpoint in the subfolder specified by `task` argument")
+ARGS = parser.parse_args()
+
+
+task=ARGS.task
+is_training=ARGS.is_training==1
+continue_training=ARGS.continue_training
+hyper=ARGS.is_hyper==1
+
+# os.system('nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp')
 if is_training:
     os.environ['CUDA_VISIBLE_DEVICES']=str(0)
 else:
     os.environ['CUDA_VISIBLE_DEVICES']=str(0)
-channel = 64
+EPS = 1e-12
+channel = 64 # number of feature channels to build the model, set to 64
 
-train_syn_root=["/media/cecilia/DATA/reflection/train/"]
-train_real_root=["/media/cecilia/DATA/reflection/train_real/"]
-test_syn_root=["/media/cecilia/DATA/reflection/test/"]
-test_real_root=["/media/cecilia/DATA/reflection/test_real/"]
+train_syn_root=[ARGS.data_syn_dir]
+train_real_root=[ARGS.data_real_dir]
+test_syn_root=[ARGS.data_syn_dir.replace("train","test")]
+test_real_root=[ARGS.data_real_dir.replace("train","test")]
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -66,14 +78,14 @@ def nm(x):
     w1=tf.Variable(0.0,name='w1')
     return w0*x+w1*slim.batch_norm(x)
 
-vgg_rawnet=scipy.io.loadmat('/home/cecilia/Documents/dev_reflection_removal/VGG_Model/imagenet-vgg-verydeep-19.mat')
-print("Loaded vgg19 pretrained imagenet")
+vgg_path=scipy.io.loadmat('../dev_reflection_removal/VGG_Model/imagenet-vgg-verydeep-19.mat')
+print("[i] Loaded vgg19 pretrained imagenet")
 def build_vgg19(input,reuse=False):
     with tf.variable_scope("vgg19"):
         if reuse:
             tf.get_variable_scope().reuse_variables()
         net={}
-        vgg_layers=vgg_rawnet['layers'][0]
+        vgg_layers=vgg_path['layers'][0]
         net['input']=input-np.array([123.6800, 116.7790, 103.9390]).reshape((1,1,1,3))
         net['conv1_1']=build_net('conv',net['input'],get_weight_bias(vgg_layers,0),name='vgg_conv1_1')
         net['conv1_2']=build_net('conv',net['conv1_1'],get_weight_bias(vgg_layers,2),name='vgg_conv1_2')
@@ -97,7 +109,7 @@ def build_vgg19(input,reuse=False):
 
 def build(input):
     if hyper:
-        print("Building hypercolumn features ... ")
+        print("[i] Hypercolumn ON, building hypercolumn features ... ")
         vgg19_features=build_vgg19(input[:,:,:,0:3]*255.0)
         for layer_id in range(1,6):
             vgg19_f = vgg19_features['conv%d_2'%layer_id]
@@ -115,9 +127,8 @@ def build(input):
     net=slim.conv2d(net,channel,[3,3],rate=16,activation_fn=lrelu,normalizer_fn=nm,weights_initializer=identity_initializer(),scope='g_conv5')
     net=slim.conv2d(net,channel,[3,3],rate=32,activation_fn=lrelu,normalizer_fn=nm,weights_initializer=identity_initializer(),scope='g_conv6')
     net=slim.conv2d(net,channel,[3,3],rate=64,activation_fn=lrelu,normalizer_fn=nm,weights_initializer=identity_initializer(),scope='g_conv7')
-    # net=slim.conv2d(net,channel,[3,3],rate=128,activation_fn=lrelu,normalizer_fn=nm,weights_initializer=identity_initializer(),scope='g_conv8')
     net=slim.conv2d(net,channel,[3,3],rate=1,activation_fn=lrelu,normalizer_fn=nm,weights_initializer=identity_initializer(),scope='g_conv9')
-    net=slim.conv2d(net,3*2,[1,1],rate=1,activation_fn=None,scope='g_conv_last')
+    net=slim.conv2d(net,3*2,[1,1],rate=1,activation_fn=None,scope='g_conv_last') # output 6 channels --> 3 for transmission layer and 3 for reflection layer
     return net
 
 # synthetic images
@@ -152,7 +163,6 @@ def syn_data(t,r,sigma):
     r_blur[r_blur>=1]=1
     r_blur[r_blur<=0]=0
 
-    # alpha1 = 1-np.random.random()/5.0;
     h,w=r_blur.shape[0:2]
     neww=np.random.randint(0, 560-w-10)
     newh=np.random.randint(0, 560-h-10)
@@ -169,6 +179,7 @@ def syn_data(t,r,sigma):
 
     return t,r_blur_mask,blend
 
+# please follow the dataset directory setup in README
 def prepare_data(train_path):
     input_names=[]
     image1=[]
@@ -190,7 +201,7 @@ def prepare_data(train_path):
 
 _,output_names1,output_names2=prepare_data(train_syn_root) # image pairs for generating synthetic training images
 input_real_names,output_real_names1,output_real_names2=prepare_data(train_real_root) # no reflection ground truth for real images
-print("Total %d training images, first path of real image is %s." % (len(output_names1)+len(output_real_names1), input_real_names[0]))
+print("[i] Total %d training images, first path of real image is %s." % (len(output_names1)+len(output_real_names1), input_real_names[0]))
 
 def compute_l1_loss(input, output):
     return tf.reduce_mean(tf.abs(input-output))
@@ -233,12 +244,14 @@ def compute_gradient(img):
     grady=img[:,:,1:,:]-img[:,:,:-1,:]
     return gradx,grady
 
+# set up the model
 with tf.variable_scope(tf.get_variable_scope()):
     input=tf.placeholder(tf.float32,shape=[None,None,None,3])
     target=tf.placeholder(tf.float32,shape=[None,None,None,3])
     reflection=tf.placeholder(tf.float32,shape=[None,None,None,3])
-    issyn = tf.placeholder(tf.bool,shape=[])
+    issyn=tf.placeholder(tf.bool,shape=[])
 
+    # build the model
     network=build(input)
     transmission_layer, reflection_layer=tf.split(network, num_or_size_splits=2, axis=3)
     
@@ -253,8 +266,8 @@ with tf.variable_scope(tf.get_variable_scope()):
     with tf.variable_scope("discriminator", reuse=True):
         predict_fake,pred_fake_dict = build_discriminator(input,transmission_layer)
 
-    d_loss = (tf.reduce_mean(-(tf.log(predict_real + EPS) + tf.log(1 - predict_fake + EPS)))) * 0.5
-    g_loss = tf.reduce_mean(-tf.log(predict_fake + EPS))
+    d_loss=(tf.reduce_mean(-(tf.log(predict_real + EPS) + tf.log(1 - predict_fake + EPS)))) * 0.5
+    g_loss=tf.reduce_mean(-tf.log(predict_fake + EPS))
     
     # L1 loss on reflection image
     loss_l1_r=tf.where(issyn,compute_l1_loss(reflection_layer, reflection),0)
@@ -276,14 +289,14 @@ for var in tf.trainable_variables():
     print(var)
 
 saver=tf.train.Saver(max_to_keep=10)
-saver_restore=tf.train.Saver([var for var in tf.trainable_variables() if 'discriminator' not in var.name])
 
 ######### Session #########
 sess=tf.Session()
 sess.run(tf.global_variables_initializer())
 ckpt=tf.train.get_checkpoint_state(task)
-print("contain checkpoint: ", ckpt)
+print("[i] contain checkpoint: ", ckpt)
 if ckpt and continue_training:
+    saver_restore=tf.train.Saver([var for var in tf.trainable_variables() if 'discriminator' not in var.name])
     print('loaded '+ckpt.model_checkpoint_path)
     saver_restore.restore(sess,ckpt.model_checkpoint_path)
 
