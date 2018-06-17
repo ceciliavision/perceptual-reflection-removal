@@ -11,9 +11,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--task", default="reflection_removal", help="path to folder containing images")
-parser.add_argument("--data_syn_dir", default="/media/cecilia/DATA/reflection/train/", help="path to synthetic dataset")
-parser.add_argument("--data_real_dir", default="/media/cecilia/DATA/reflection/train_real/", help="path to real dataset")
-parser.add_argument("--is_hyper", default=1, type=int, help="")
+parser.add_argument("--data_syn_dir", default="/media/cecilia/DATA/reflection/test_aperture/", help="path to synthetic dataset")
+parser.add_argument("--data_real_dir", default="/media/cecilia/DATA/reflection/test_aperture/", help="path to real dataset")
+parser.add_argument("--save_model_freq", default=1, type=int, help="frequency to save model")
+parser.add_argument("--is_hyper", default=1, type=int, help="use hypercolumn or not")
 parser.add_argument("--is_training", default=1, help="training or testing")
 parser.add_argument("--continue_training", action="store_true", help="search for checkpoint in the subfolder specified by `task` argument")
 ARGS = parser.parse_args()
@@ -78,7 +79,7 @@ def nm(x):
     w1=tf.Variable(0.0,name='w1')
     return w0*x+w1*slim.batch_norm(x)
 
-vgg_path=scipy.io.loadmat('../dev_reflection_removal/VGG_Model/imagenet-vgg-verydeep-19.mat')
+vgg_path=scipy.io.loadmat('./VGG_Model/imagenet-vgg-verydeep-19.mat')
 print("[i] Loaded vgg19 pretrained imagenet")
 def build_vgg19(input,reuse=False):
     with tf.variable_scope("vgg19"):
@@ -199,9 +200,9 @@ def prepare_data(train_path):
                     image2.append(path_output2)
     return input_names,image1,image2
 
-_,output_names1,output_names2=prepare_data(train_syn_root) # image pairs for generating synthetic training images
+_,syn_image1_list,syn_image2_list=prepare_data(train_syn_root) # image pairs for generating synthetic training images
 input_real_names,output_real_names1,output_real_names2=prepare_data(train_real_root) # no reflection ground truth for real images
-print("[i] Total %d training images, first path of real image is %s." % (len(output_names1)+len(output_real_names1), input_real_names[0]))
+print("[i] Total %d training images, first path of real image is %s." % (len(syn_image1_list)+len(output_real_names1), input_real_names[0]))
 
 def compute_l1_loss(input, output):
     return tf.reduce_mean(tf.abs(input-output))
@@ -302,7 +303,7 @@ if ckpt and continue_training:
 
 maxepoch=100
 k_sz=np.linspace(1,5,80) # for synthetic images
-num_train=len(output_names2)
+num_train=len(syn_image1_list)
 g_mean=0
 if is_training:
     all_l=np.zeros(num_train, dtype=float)
@@ -310,7 +311,6 @@ if is_training:
     all_grad=np.zeros(num_train, dtype=float)
     all_g=np.zeros(num_train, dtype=float)
     for epoch in range(1,maxepoch):
-        # if epoch==1 or epoch==maxepoch+1:
         input_images=[None]*num_train
         output_images_t=[None]*num_train
         output_images_r=[None]*num_train
@@ -324,16 +324,16 @@ if is_training:
                 magic=np.random.random()
                 if magic < 0.7: # choose from synthetic dataset
                     is_syn=True
-                    outputimg=cv2.imread(output_names1[id],-1)
+                    syn_image1=cv2.imread(syn_image1_list[id],-1)
                     neww=np.random.randint(256, 480)
-                    newh=round((neww/outputimg.shape[1])*outputimg.shape[0])
-                    output_image_t=cv2.resize(np.float32(outputimg),(neww,newh),cv2.INTER_CUBIC)/255.0
-                    outputimg_r=cv2.resize(np.float32(cv2.imread(output_names2[id],-1)),(neww,newh),cv2.INTER_CUBIC)/255.0
-                    file=os.path.splitext(os.path.basename(output_names1[id]))[0]
+                    newh=round((neww/syn_image1.shape[1])*syn_image1.shape[0])
+                    output_image_t=cv2.resize(np.float32(syn_image1),(neww,newh),cv2.INTER_CUBIC)/255.0
+                    output_image_r=cv2.resize(np.float32(cv2.imread(syn_image2_list[id],-1)),(neww,newh),cv2.INTER_CUBIC)/255.0
+                    file=os.path.splitext(os.path.basename(syn_image1_list[id]))[0]
                     sigma=k_sz[np.random.randint(0, len(k_sz))]
-                    if np.mean(output_image_t)*1/2 > np.mean(outputimg_r):
+                    if np.mean(output_image_t)*1/2 > np.mean(output_image_r):
                         continue
-                    output_image_t1,output_image_r,input_image=syn_data(output_image_t,outputimg_r,sigma)
+                    _,output_image_r,input_image=syn_data(output_image_t,output_image_r,sigma)
                 else: # choose from real dataste
                     is_syn=False
                     _id=id%len(input_real_names)
@@ -350,13 +350,10 @@ if is_training:
                 output_images_r[id]=np.expand_dims(output_image_r,axis=0)
                 
                 # remove some degenerated images (low-light or over-saturated images), heuristically set
-                if (input_images[id][:,:,0].sum() * input_images[id][:,:,1].sum() * input_images[id][:,:,2].sum()) < 1e-6:
-                    print("Invalid file %s (degenerate channel)" % (file))
-                    continue
-                if (output_images_r[id][:,:,0].sum() * output_images_r[id][:,:,1].sum() * output_images_r[id][:,:,2].sum()) < 1e-6:
+                if output_images_r[id].max() < 0.15 or output_images_t[id].max() < 0.15:
                     print("Invalid reflection file %s (degenerate channel)" % (file))
                     continue
-                if input_images[id].max() < 0.2:
+                if input_images[id].max() < 0.1:
                     print("Invalid file %s (degenerate image)" % (file))
                     continue
                 
@@ -369,8 +366,9 @@ if is_training:
                     d_loss,g_loss,
                     loss,loss_percep,loss_grad]
                 # update G
-                _,output_image_t,output_image_r,current_d,current_g,current,current_percep,current_grad=\
+                _,pred_image_t,pred_image_r,current_d,current_g,current,current_percep,current_grad=\
                     sess.run(fetch_list,feed_dict={input:input_images[id],target:output_images_t[id],reflection:output_images_r[id],issyn:is_syn})
+
                 all_l[id]=current
                 all_percep[id]=current_percep
                 all_grad[id]=current_grad*255
@@ -386,3 +384,19 @@ if is_training:
                 input_images[id]=1.
                 output_images_t[id]=1.
                 output_images_r[id]=1.
+
+        # save model and images every epoch
+        if epoch % ARGS.save_model_freq == 0:
+            os.makedirs("%s/%04d"%(task,epoch))
+            saver.save(sess,"%s/model.ckpt"%task)
+            saver.save(sess,"%s/%04d/model.ckpt"%(task,epoch))
+
+            fileid = os.path.splitext(os.path.basename(syn_image1_list[id]))[0]
+            if not os.path.isdir("%s/%04d/%s" % (task, epoch, fileid)):
+                os.makedirs("%s/%04d/%s" % (task, epoch, fileid))
+            pred_image_t=np.minimum(np.maximum(pred_image_t,0.0),1.0)*255.0
+            pred_image_r=np.minimum(np.maximum(pred_image_r,0.0),1.0)*255.0
+            print("shape of outputs: ",pred_image_t.shape, pred_image_r.shape)
+            cv2.imwrite("%s/%04d/%s/int_t.jpg"%(task, epoch, fileid),np.uint8(np.squeeze(input_image*255.0)))
+            cv2.imwrite("%s/%04d/%s/out_t.jpg"%(task, epoch, fileid),np.uint8(np.squeeze(pred_image_t)))
+            cv2.imwrite("%s/%04d/%s/out_r.jpg"%(task, epoch, fileid),np.uint8(np.squeeze(pred_image_r)))
