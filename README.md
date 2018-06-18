@@ -69,4 +69,4 @@ If you find this work useful for your research, please cite:
 ```
 
 ## Contact
-Please contact me if there is any question (Cecilia Zhang <cecilia77@berkeley.com>)
+Please contact me if there is any question (Cecilia Zhang <cecilia77@berkeley.edu>)
