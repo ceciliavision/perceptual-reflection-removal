@@ -1,15 +1,13 @@
-## perceptual-reflection-removal
+# perceptual-reflection-removal
 
 
 Code and data for paper [Single Image Reflection Removal with Perceptual Losses](https://arxiv.org/abs/1806.05376)
 
 This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
-Part of the code is based upon [FastImageProcessing](https://github.com/CQFIO/FastImageProcessing)
+##![Our result compared against CEILNet on real images.](./teaser/teaser.png)
 
-#![Our result compared against CEILNet on real images.](./teaser/teaser.png)
-
-# Setup
+## Setup
   * Clone/Download this repo
   * `$ cd perceptual-reflection-removal`
   * `$ mkdir VGG_Model`
@@ -31,9 +29,44 @@ For real data, since the ground truth reflection layer is not available, there i
 >>+-- `blended`<br>
 >>+-- `transmission_layer`<br>
 
-# Training
-`python3 main.py` to train from scratch
+## Training
+###Quick Start
+(assume you have the dataset paths set up):
 
-`python3 main.py --continue_training --task checkpoint_folder_name` to train from existing checkpoint, specified by the `task` argument
+`python3 main.py` for triaining from scratch
 
-Change `train_real_root` to the correct synthetic and real dataset paths
+`python3 main.py --continue_training` for training with existing checkpoint (path specified by the `--task` argument)
+
+### Other Arguments
+`--task`: the checkpoint directory path. For example, for `--task experiment_1`, the checkpoints are saved inside `./experiment_1/`
+
+`--data_syn_dir`: root path to the images to generate synthetic data
+
+`--data_real_dir`: root path to the real images
+
+`--save_model_freq`: frequency to save model and the output images
+
+`--is_hyper`: whether to use hypercolumn features as input, all our trained models uses hypercolumn features as input
+
+
+<!--## Testing
+Testing and evaluation codes coming soon.-->
+
+## Acknowledgement
+Part of the code is based upon [FastImageProcessing](https://github.com/CQFIO/FastImageProcessing)
+
+## Citation
+If you find this work useful for your research, please cite:
+
+```
+@inproceedings{zhang2018single,
+  title = {Single Image Reflection Separation with Perceptual Losses},
+  author = {Zhang, Xuaner and Ng, Ren and Chen, Qifeng}
+  booktitle = {IEEE Conference on Computer Vision and Pattern Recognition},
+  month = june,
+  year = {2018}
+}
+```
+
+## Contact
+Please contact me if there is any question (Cecilia Zhang <cecilia77@berkeley.edu>)
