@@ -17,7 +17,7 @@ Part of the code is based upon [FastImageProcessing](https://github.com/CQFIO/Fa
   * move the downloaded vgg model to `VGG_Model`
 
 # Dataset
-Both synthetic and real dataset coming soon. 
+[Here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing) is the link to real dataset. 
 
 You can also try with your own dataset. For example, to generate your own synthetic dataset, prepare for two folders of images, one used for transmission layer and the other used for reflection layer. In order to use our data loader, please follow the instructions below to organize your dataset directories. Overall, we name the directory of input image with reflection `blended`, the ground truth transmission layer `transmission_layer` and the ground truth reflection layer `reflection_layer`.
 
@@ -32,6 +32,8 @@ For real data, since the ground truth reflection layer is not available, there i
 >>+-- `transmission_layer`<br>
 
 # Training
-`python3 main.py`
+`python3 main.py` to train from scratch
+
+`python3 main.py --continue_training --task checkpoint_folder_name` to train from existing checkpoint, specified by the `task` argument
 
 Change `train_real_root` to the correct synthetic and real dataset paths
