@@ -54,9 +54,19 @@ For real data, since the ground truth reflection layer is not available, there i
 
 `--is_hyper`: whether to use hypercolumn features as input, all our trained models uses hypercolumn features as input
 
+Change `train_real_root` to the correct synthetic and real dataset paths
 
-<!--## Testing
-Testing and evaluation codes coming soon.-->
+# Testing
+
+* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj)
+* `$ tar -xvzf pre-trained.tar.gz`
+* this should extract the models into a newly created folder called `pre-trained`
+* Change `test_path` (line 419) to your test image folder. If you want to test on the provided test images (e.g. in `./test_images/real/`), keep it as it is.
+* test results can be found in `./test_results/`
+
+
+`python3 main.py --task pre-trained --is_training 0`
+
 
 ## Acknowledgement
 Part of the code is based upon [FastImageProcessing](https://github.com/CQFIO/FastImageProcessing)
@@ -74,21 +84,6 @@ If you find this work useful for your research, please cite:
 }
 ```
 
-<<<<<<< HEAD
-Change `train_real_root` to the correct synthetic and real dataset paths
-
-# Testing
-
-* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj)
-* `$ tar -xvzf pre-trained.tar.gz`
-* this should extract the models into a newly created folder called `pre-trained`
-* Change `test_path` (line 419) to your test image folder. If you want to test on the provided test images (e.g. in `./test_images/real/`), keep it as it is.
-* test results can be found in `./test_results/`
-
-
-`python3 main.py --task pre-trained --is_training 0`
-
-=======
 ## Contact
 Please contact me if there is any question (Cecilia Zhang <cecilia77@berkeley.edu>)
->>>>>>> c2e8f2786ad177d4089b7e147ffb042a6815b7c7
+
