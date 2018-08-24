@@ -17,7 +17,7 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 # Dataset
 ### Use our collected synthetic and real data
 Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
-* synthetic blended data is created on-the-fly so there is only reflection layer and transmission layer folders
+* synthetically blended data is created on-the-fly so there is only reflection layer and transmission layer folders
 * real data has blended images and ground truth transmission layer (*NO ground truth reflection layer*, reason is detailed in the paper)
 
 ### Try with your own dataset
@@ -34,7 +34,7 @@ For real data, since the ground truth reflection layer is not available, there i
 >>+-- `transmission_layer`<br>
 
 ## Training
-###Quick Start
+### Quick Start
 (please have yous real and synthetic data paths set up correctly as described above):
 
 `python3 main.py --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path` for triaining from scratch
@@ -60,6 +60,7 @@ For real data, since the ground truth reflection layer is not available, there i
 * Change `test_path` (line 419) to your test image folder. If you want to test on the provided test images (e.g. in `./test_images/real/`), keep it as it is.
 * test results can be found in `./test_results/`
 
+Then, run
 
 `$ python3 main.py --task pre-trained --is_training 0`
 
