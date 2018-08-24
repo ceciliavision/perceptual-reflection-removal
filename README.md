@@ -2,7 +2,6 @@
 
 
 Code and data for paper [Single Image Reflection Removal with Perceptual Losses](https://arxiv.org/abs/1806.05376)
-
 This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
 ##![Our result compared against CEILNet on real images.](./teaser/teaser.png)
@@ -12,13 +11,12 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
   * Clone/Download this repo
   * `$ cd perceptual-reflection-removal`
   * `$ mkdir VGG_Model`
-  * Download [VGG-19](http://www.vlfeat.org/matconvnet/pretrained/#downloading-the-pre-trained-models). Search `imagenet-vgg-verydeep-19` in this page and download `imagenet-vgg-verydeep-19.mat`. We need the pre-trained VGG-19 model for our hypercolumn input and feature loss
+  * Download [VGG-19](http://www.vlfeat.org/matconvnet/pretrained/#downloading-the-pre-trained-models){:target="_blank"}. Search `imagenet-vgg-verydeep-19` in this page and download `imagenet-vgg-verydeep-19.mat`. We need the pre-trained VGG-19 model for our hypercolumn input and feature loss
   * move the downloaded vgg model to folder `VGG_Model`
 
 # Dataset
 ### Use our collected synthetic and real data
-Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
-
+Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing){:target="_blank"}.
 * synthetic blended data is created on-the-fly so there is only reflection layer and transmission layer folders
 * real data has blended images and ground truth transmission layer (*NO ground truth reflection layer*, reason is detailed in the paper)
 
@@ -37,14 +35,14 @@ For real data, since the ground truth reflection layer is not available, there i
 
 ## Training
 ###Quick Start
-(assume you have the dataset paths set up):
+(please have yous real and synthetic data paths set up correctly as described above):
 
-`python3 main.py` for triaining from scratch
+`python3 main.py --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path` for triaining from scratch
 
-`python3 main.py --continue_training` for training with existing checkpoint (path specified by the `--task` argument)
+`python3 main.py --continue_training --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path --task your_checkpoint_path` for training with existing checkpoint (checkpoint path specified by the `--task` argument)
 
-### Other Arguments
-`--task`: the checkpoint directory path. For example, for `--task experiment_1`, the checkpoints are saved inside `./experiment_1/`
+### Arguments
+`--task`: the checkpoint directory path. For example, for `--task experiment_1`, the checkpoints (e.g. `*.model`) are saved inside `./experiment_1/`
 
 `--data_syn_dir`: root path to the images to generate synthetic data
 
@@ -54,18 +52,16 @@ For real data, since the ground truth reflection layer is not available, there i
 
 `--is_hyper`: whether to use hypercolumn features as input, all our trained models uses hypercolumn features as input
 
-Change `train_real_root` to the correct synthetic and real dataset paths
-
 # Testing
 
-* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj)
+* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj){:target="_blank"}
 * `$ tar -xvzf pre-trained.tar.gz`
 * this should extract the models into a newly created folder called `pre-trained`
 * Change `test_path` (line 419) to your test image folder. If you want to test on the provided test images (e.g. in `./test_images/real/`), keep it as it is.
 * test results can be found in `./test_results/`
 
 
-`python3 main.py --task pre-trained --is_training 0`
+`$ python3 main.py --task pre-trained --is_training 0`
 
 
 ## Acknowledgement
