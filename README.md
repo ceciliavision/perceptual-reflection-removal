@@ -11,12 +11,12 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
   * Clone/Download this repo
   * `$ cd perceptual-reflection-removal`
   * `$ mkdir VGG_Model`
-  * Download [VGG-19](http://www.vlfeat.org/matconvnet/pretrained/#downloading-the-pre-trained-models){:target="_blank"}. Search `imagenet-vgg-verydeep-19` in this page and download `imagenet-vgg-verydeep-19.mat`. We need the pre-trained VGG-19 model for our hypercolumn input and feature loss
+  * Download [VGG-19](http://www.vlfeat.org/matconvnet/pretrained/#downloading-the-pre-trained-models). Search `imagenet-vgg-verydeep-19` in this page and download `imagenet-vgg-verydeep-19.mat`. We need the pre-trained VGG-19 model for our hypercolumn input and feature loss
   * move the downloaded vgg model to folder `VGG_Model`
 
 # Dataset
 ### Use our collected synthetic and real data
-Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing){:target="_blank"}.
+Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
 * synthetic blended data is created on-the-fly so there is only reflection layer and transmission layer folders
 * real data has blended images and ground truth transmission layer (*NO ground truth reflection layer*, reason is detailed in the paper)
 
@@ -54,7 +54,7 @@ For real data, since the ground truth reflection layer is not available, there i
 
 # Testing
 
-* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj){:target="_blank"}
+* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj)
 * `$ tar -xvzf pre-trained.tar.gz`
 * this should extract the models into a newly created folder called `pre-trained`
 * Change `test_path` (line 419) to your test image folder. If you want to test on the provided test images (e.g. in `./test_images/real/`), keep it as it is.
