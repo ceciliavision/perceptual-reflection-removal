@@ -15,12 +15,12 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
   * move the downloaded vgg model to folder `VGG_Model`
 
 ## Dataset
-### Use our collected synthetic and real data
+#### Use our collected synthetic and real data
 Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
 * synthetically blended data is created on-the-fly so there is only reflection layer and transmission layer folders
 * real data has blended images and ground truth transmission layer (*NO ground truth reflection layer*, reason is detailed in the paper)
 
-### Try with your own dataset
+#### Try with your own dataset
 You can also try with your own dataset. For example, to generate your own synthetic dataset, prepare for two folders of images, one used for transmission layer and the other used for reflection layer. In order to use our data loader, please follow the instructions below to organize your dataset directories. Overall, we name the directory of input image with reflection `blended`, the ground truth transmission layer `transmission_layer` and the ground truth reflection layer `reflection_layer`.
 
 For synthetic data, since we generate images on the fly, there is no need to have the `blended` subdirectory.
@@ -34,14 +34,14 @@ For real data, since the ground truth reflection layer is not available, there i
 >>+-- `transmission_layer`<br>
 
 ## Training
-### Quick Start
+#### Quick Start
 (please have yous real and synthetic data paths set up correctly as described above):
 
 `python3 main.py --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path` for triaining from scratch
 
 `python3 main.py --continue_training --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path --task your_checkpoint_path` for training with existing checkpoint (checkpoint path specified by the `--task` argument)
 
-### Arguments
+#### Arguments
 `--task`: the checkpoint directory path. For example, for `--task experiment_1`, the checkpoints (e.g. `*.model`) are saved inside `./experiment_1/`
 
 `--data_syn_dir`: root path to the images to generate synthetic data
@@ -52,7 +52,7 @@ For real data, since the ground truth reflection layer is not available, there i
 
 `--is_hyper`: whether to use hypercolumn features as input, all our trained models uses hypercolumn features as input
 
-# Testing
+## Testing
 
 * Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj)
 * `$ tar -xvzf pre-trained.tar.gz`
