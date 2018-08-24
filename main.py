@@ -8,17 +8,15 @@ from discriminator import build_discriminator
 import scipy.stats as st
 import argparse
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument("--task", default="reflection_removal", help="path to folder containing images")
-parser.add_argument("--data_syn_dir", default="/media/cecilia/DATA/reflection/test_aperture/", help="path to synthetic dataset")
-parser.add_argument("--data_real_dir", default="/media/cecilia/DATA/reflection/test_aperture/", help="path to real dataset")
+parser.add_argument("--task", default="pre-trained", help="path to folder containing the model")
+parser.add_argument("--data_syn_dir", default="", help="path to synthetic dataset")
+parser.add_argument("--data_real_dir", default="", help="path to real dataset")
 parser.add_argument("--save_model_freq", default=1, type=int, help="frequency to save model")
 parser.add_argument("--is_hyper", default=1, type=int, help="use hypercolumn or not")
 parser.add_argument("--is_training", default=1, help="training or testing")
 parser.add_argument("--continue_training", action="store_true", help="search for checkpoint in the subfolder specified by `task` argument")
 ARGS = parser.parse_args()
-
 
 task=ARGS.task
 is_training=ARGS.is_training==1
@@ -35,8 +33,6 @@ channel = 64 # number of feature channels to build the model, set to 64
 
 train_syn_root=[ARGS.data_syn_dir]
 train_real_root=[ARGS.data_real_dir]
-test_syn_root=[ARGS.data_syn_dir.replace("train","test")]
-test_real_root=[ARGS.data_real_dir.replace("train","test")]
 
 IMG_EXTENSIONS = [
     '.jpg', '.JPG', '.jpeg', '.JPEG',
@@ -80,7 +76,8 @@ def nm(x):
     return w0*x+w1*slim.batch_norm(x)
 
 vgg_path=scipy.io.loadmat('./VGG_Model/imagenet-vgg-verydeep-19.mat')
-print("[i] Loaded vgg19 pretrained imagenet")
+print("[i] Loaded pre-trained vgg19 parameters")
+# build VGG19 to load pre-trained parameters
 def build_vgg19(input,reuse=False):
     with tf.variable_scope("vgg19"):
         if reuse:
@@ -108,6 +105,7 @@ def build_vgg19(input,reuse=False):
         net['conv5_2']=build_net('conv',net['conv5_1'],get_weight_bias(vgg_layers,30),name='vgg_conv5_2')
         return net
 
+# our reflection removal model
 def build(input):
     if hyper:
         print("[i] Hypercolumn ON, building hypercolumn features ... ")
@@ -132,7 +130,7 @@ def build(input):
     net=slim.conv2d(net,3*2,[1,1],rate=1,activation_fn=None,scope='g_conv_last') # output 6 channels --> 3 for transmission layer and 3 for reflection layer
     return net
 
-# synthetic images
+# functions for synthesizing images with reflection (details in the paper)
 def gkern(kernlen=100, nsig=1):
     """Returns a 2D Gaussian kernel array."""
     interval = (2*nsig+1.)/(kernlen)
@@ -180,30 +178,7 @@ def syn_data(t,r,sigma):
 
     return t,r_blur_mask,blend
 
-# please follow the dataset directory setup in README
-def prepare_data(train_path):
-    input_names=[]
-    image1=[]
-    image2=[]
-    for dirname in train_path:
-        train_t_gt = dirname + "transmission_layer/"
-        train_r_gt = dirname + "reflection_layer/"
-        train_b = dirname + "blended/"
-        for root, _, fnames in sorted(os.walk(train_t_gt)):
-            for fname in fnames:
-                if is_image_file(fname):
-                    path_input = os.path.join(train_b, fname)
-                    path_output1 = os.path.join(train_t_gt, fname)
-                    path_output2 = os.path.join(train_r_gt, fname)
-                    input_names.append(path_input)
-                    image1.append(path_output1)
-                    image2.append(path_output2)
-    return input_names,image1,image2
-
-_,syn_image1_list,syn_image2_list=prepare_data(train_syn_root) # image pairs for generating synthetic training images
-input_real_names,output_real_names1,output_real_names2=prepare_data(train_real_root) # no reflection ground truth for real images
-print("[i] Total %d training images, first path of real image is %s." % (len(syn_image1_list)+len(output_real_names1), input_real_names[0]))
-
+# functions to compute different loss terms
 def compute_l1_loss(input, output):
     return tf.reduce_mean(tf.abs(input-output))
 
@@ -245,7 +220,7 @@ def compute_gradient(img):
     grady=img[:,:,1:,:]-img[:,:,:-1,:]
     return gradx,grady
 
-# set up the model
+# set up the model and define the graph
 with tf.variable_scope(tf.get_variable_scope()):
     input=tf.placeholder(tf.float32,shape=[None,None,None,3])
     target=tf.placeholder(tf.float32,shape=[None,None,None,3])
@@ -283,10 +258,11 @@ with tf.variable_scope(tf.get_variable_scope()):
 train_vars = tf.trainable_variables()
 d_vars = [var for var in train_vars if 'discriminator' in var.name]
 g_vars = [var for var in train_vars if 'g_' in var.name]
-g_opt=tf.train.AdamOptimizer(learning_rate=0.0002).minimize(loss*100+g_loss, var_list=g_vars)
-d_opt=tf.train.AdamOptimizer(learning_rate=0.0001).minimize(d_loss,var_list=d_vars)
+g_opt=tf.train.AdamOptimizer(learning_rate=0.0002).minimize(loss*100+g_loss, var_list=g_vars) # optimizer for the generator
+d_opt=tf.train.AdamOptimizer(learning_rate=0.0001).minimize(d_loss,var_list=d_vars) # optimizer for the discriminator
 
 for var in tf.trainable_variables():
+    print("Listing trainable variables ... ")
     print(var)
 
 saver=tf.train.Saver(max_to_keep=10)
@@ -297,15 +273,43 @@ sess.run(tf.global_variables_initializer())
 ckpt=tf.train.get_checkpoint_state(task)
 print("[i] contain checkpoint: ", ckpt)
 if ckpt and continue_training:
+    saver_restore=tf.train.Saver([var for var in tf.trainable_variables()])
+    print('loaded '+ckpt.model_checkpoint_path)
+    saver_restore.restore(sess,ckpt.model_checkpoint_path)
+# test doesn't need to load discriminator
+else:
     saver_restore=tf.train.Saver([var for var in tf.trainable_variables() if 'discriminator' not in var.name])
     print('loaded '+ckpt.model_checkpoint_path)
     saver_restore.restore(sess,ckpt.model_checkpoint_path)
 
 maxepoch=100
 k_sz=np.linspace(1,5,80) # for synthetic images
-num_train=len(syn_image1_list)
-g_mean=0
 if is_training:
+    # please follow the dataset directory setup in README
+    def prepare_data(train_path):
+        input_names=[]
+        image1=[]
+        image2=[]
+        for dirname in train_path:
+            train_t_gt = dirname + "transmission_layer/"
+            train_r_gt = dirname + "reflection_layer/"
+            train_b = dirname + "blended/"
+            for root, _, fnames in sorted(os.walk(train_t_gt)):
+                for fname in fnames:
+                    if is_image_file(fname):
+                        path_input = os.path.join(train_b, fname)
+                        path_output1 = os.path.join(train_t_gt, fname)
+                        path_output2 = os.path.join(train_r_gt, fname)
+                        input_names.append(path_input)
+                        image1.append(path_output1)
+                        image2.append(path_output2)
+        return input_names,image1,image2
+
+    _,syn_image1_list,syn_image2_list=prepare_data(train_syn_root) # image pairs for generating synthetic training images
+    input_real_names,output_real_names1,output_real_names2=prepare_data(train_real_root) # no reflection ground truth for real images
+    print("[i] Total %d training images, first path of real image is %s." % (len(syn_image1_list)+len(output_real_names1), input_real_names[0]))
+    
+    num_train=len(syn_image1_list)+len(output_real_names1)
     all_l=np.zeros(num_train, dtype=float)
     all_percep=np.zeros(num_train, dtype=float)
     all_grad=np.zeros(num_train, dtype=float)
@@ -397,6 +401,39 @@ if is_training:
             pred_image_t=np.minimum(np.maximum(pred_image_t,0.0),1.0)*255.0
             pred_image_r=np.minimum(np.maximum(pred_image_r,0.0),1.0)*255.0
             print("shape of outputs: ",pred_image_t.shape, pred_image_r.shape)
-            cv2.imwrite("%s/%04d/%s/int_t.jpg"%(task, epoch, fileid),np.uint8(np.squeeze(input_image*255.0)))
-            cv2.imwrite("%s/%04d/%s/out_t.jpg"%(task, epoch, fileid),np.uint8(np.squeeze(pred_image_t)))
-            cv2.imwrite("%s/%04d/%s/out_r.jpg"%(task, epoch, fileid),np.uint8(np.squeeze(pred_image_r)))
+            cv2.imwrite("%s/%04d/%s/int_t.png"%(task, epoch, fileid),np.uint8(np.squeeze(input_image*255.0)))
+            cv2.imwrite("%s/%04d/%s/out_t.png"%(task, epoch, fileid),np.uint8(np.squeeze(pred_image_t)))
+            cv2.imwrite("%s/%04d/%s/out_r.png"%(task, epoch, fileid),np.uint8(np.squeeze(pred_image_r)))
+# To test the model on images with reflection
+else:
+    def prepare_data_test(test_path):
+        input_names=[]
+        for dirname in test_path:
+            for _, _, fnames in sorted(os.walk(dirname)):
+                for fname in fnames:
+                    if is_image_file(fname):
+                        input_names.append(os.path.join(dirname, fname))
+        return input_names
+
+    # Please replace with your own test image path
+    test_path = ["./test_images/CEILNet/"] #["./test_images/real/"]
+    subtask="CEILNet" # if you want to save different testset separately
+    val_names=prepare_data_test(test_path)
+
+    for val_path in val_names:
+        testind = os.path.splitext(os.path.basename(val_path))[0]
+        if not os.path.isfile(val_path):
+            continue
+        img=cv2.imread(val_path)
+        input_image=np.expand_dims(np.float32(img), axis=0)/255.0
+        st=time.time()
+        output_image_t, output_image_r=sess.run([transmission_layer, reflection_layer],feed_dict={input:input_image})
+        print("Test time %.3f for image %s"%(time.time()-st, val_path))
+        output_image_t=np.minimum(np.maximum(output_image_t,0.0),1.0)*255.0
+        output_image_r=np.minimum(np.maximum(output_image_r,0.0),1.0)*255.0
+        if not os.path.isdir("./test_results/%s/%s"%(subtask,testind)):
+            os.makedirs("./test_results/%s/%s"%(subtask,testind))
+        cv2.imwrite("./test_results/%s/%s/input.png"%(subtask,testind),img)
+        cv2.imwrite("./test_results/%s/%s/t_output.png"%(subtask,testind),np.uint8(output_image_t[0,:,:,0:3])) # output transmission layer
+        cv2.imwrite("./test_results/%s/%s/r_output.png"%(subtask,testind),np.uint8(output_image_r[0,:,:,0:3])) # output reflection layer
+
