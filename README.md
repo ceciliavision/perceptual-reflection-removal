@@ -14,7 +14,7 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
   * Download [VGG-19](http://www.vlfeat.org/matconvnet/pretrained/#downloading-the-pre-trained-models). Search `imagenet-vgg-verydeep-19` in this page and download `imagenet-vgg-verydeep-19.mat`. We need the pre-trained VGG-19 model for our hypercolumn input and feature loss
   * move the downloaded vgg model to folder `VGG_Model`
 
-# Dataset
+## Dataset
 ### Use our collected synthetic and real data
 Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
 * synthetically blended data is created on-the-fly so there is only reflection layer and transmission layer folders
