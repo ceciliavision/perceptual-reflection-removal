@@ -3,7 +3,7 @@
 
 Code and data for paper [Single Image Reflection Removal with Perceptual Losses](https://arxiv.org/abs/1806.05376)
  and 
-[Supplementary material] (https://ceciliavision.github.io/papers/Reflection_Separation_Supplementary_Material_CVPR2018.pdf)
+[Supplementary material](https://ceciliavision.github.io/papers/Reflection_Separation_Supplementary_Material_CVPR2018.pdf)
 
 This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
