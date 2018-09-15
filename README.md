@@ -22,6 +22,8 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
 * synthetically blended data is created on-the-fly so there is only reflection layer and transmission layer folders
 * real data has blended images and ground truth transmission layer (*NO ground truth reflection layer*, reason is detailed in the paper)
+* real images used for test have indices: [3, 4, 9, 12, 15, 22, 23, 25, 29, 39, 46, 47, 58, 86, 87, 89, 93, 103, 107, 110]
+  * special thanks to @Vandermode who helped with sorting out dataset-related problems
 
 #### Try with your own dataset
 You can also try with your own dataset. For example, to generate your own synthetic dataset, prepare for two folders of images, one used for transmission layer and the other used for reflection layer. In order to use our data loader, please follow the instructions below to organize your dataset directories. Overall, we name the directory of input image with reflection `blended`, the ground truth transmission layer `transmission_layer` and the ground truth reflection layer `reflection_layer`.
