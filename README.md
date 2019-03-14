@@ -19,7 +19,7 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
 ### Conda environment
 
-A minimal conda environment to test the pretrained model is provided.
+A minimal conda environment to test the pretrained model is provided. (credit to @ironbar)
 
 ```
 conda env create -f env.yml
