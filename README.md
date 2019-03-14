@@ -7,7 +7,7 @@ Code and data for paper [Single Image Reflection Removal with Perceptual Losses]
 
 This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
-##![Our result compared against CEILNet on real images.](./teaser/teaser.png)
+## ![Our result compared against CEILNet on real images.](./teaser/teaser.png)
 
 
 ## Setup
@@ -16,6 +16,14 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
   * `$ mkdir VGG_Model`
   * Download [VGG-19](http://www.vlfeat.org/matconvnet/pretrained/#downloading-the-pre-trained-models). Search `imagenet-vgg-verydeep-19` in this page and download `imagenet-vgg-verydeep-19.mat`. We need the pre-trained VGG-19 model for our hypercolumn input and feature loss
   * move the downloaded vgg model to folder `VGG_Model`
+
+### Conda environment
+
+A minimal conda environment to test the pretrained model is provided.
+
+```
+conda env create -f env.yml
+```
 
 ## Dataset
 #### Use our collected synthetic and real data
