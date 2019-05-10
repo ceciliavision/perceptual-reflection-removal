@@ -1,9 +1,9 @@
 # perceptual-reflection-removal
 
 
-Code and data for CVPR 2018 paper [Single Image Reflection Removal with Perceptual Losses](https://arxiv.org/abs/1806.05376)
- and 
-[Supplementary material](https://www.dropbox.com/s/zbpms9copcc316n/Reflection_Separation_Supplementary_Material_CVPR2018.pdf?dl=0)
+Code and data for CVPR 2018 paper: Single Image Reflection Removal with Perceptual Losses
+
+[Project Website](https://ceciliavision.github.io/project-pages/project-reflection) | [Paper](https://arxiv.org/abs/1806.05376)
 
 This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
@@ -89,7 +89,6 @@ If you find this work useful for your research, please cite:
   title = {Single Image Reflection Separation with Perceptual Losses},
   author = {Zhang, Xuaner and Ng, Ren and Chen, Qifeng}
   booktitle = {IEEE Conference on Computer Vision and Pattern Recognition},
-  month = june,
   year = {2018}
 }
 ```
