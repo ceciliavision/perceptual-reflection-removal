@@ -3,7 +3,7 @@
 
 Code and data for CVPR 2018 paper: Single Image Reflection Removal with Perceptual Losses
 
-[Project Website](https://ceciliavision.github.io/project-pages/project-reflection) | [Paper](https://arxiv.org/abs/1806.05376)
+[Project Website](https://people.eecs.berkeley.edu/~cecilia77/project-pages/reflection.html) | [Paper](https://arxiv.org/abs/1806.05376)
 
 This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
