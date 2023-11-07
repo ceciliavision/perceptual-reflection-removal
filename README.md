@@ -18,7 +18,7 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
 ### Core Environment Requirements
 
-* "tensorflow<=2.10"
+* tensorflow<=2.10
 
 * tf-slim==1.1.0 (other versions could be fine but hava not been tested)
 
@@ -53,9 +53,9 @@ For real data, since the ground truth reflection layer is not available, there i
 
 (please have yous real and synthetic data paths set up correctly as described above):
 
-`python3 main.py --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path` for triaining from scratch
+`python main.py --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path` for triaining from scratch
 
-`python3 main.py --continue_training --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path --task your_checkpoint_path` for training with existing checkpoint (checkpoint path specified by the `--task` argument)
+`python main.py --continue_training --data_syn_dir your_syn_data_path --data_real_dir your_real_data_path --task your_checkpoint_path` for training with existing checkpoint (checkpoint path specified by the `--task` argument)
 
 #### Arguments
 
