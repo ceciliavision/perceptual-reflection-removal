@@ -79,7 +79,7 @@ For real data, since the ground truth reflection layer is not available, there i
 
 Then, run
 
-`$ python3 main.py --task pre-trained --is_training 0`
+`$ python main.py --task pre-trained --is_training 0`
 
 ## Acknowledgement
 
