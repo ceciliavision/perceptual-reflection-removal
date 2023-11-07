@@ -1,18 +1,25 @@
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
-channel=64
+channel = 64
+
+
 def conv(batch_input, out_channels, stride):
     with tf.variable_scope("conv"):
         in_channels = batch_input.get_shape()[3]
-        filter = tf.get_variable("filter", [4, 4, in_channels, out_channels], dtype=tf.float32, initializer=tf.random_normal_initializer(0, 0.02))
-        padded_input = tf.pad(batch_input, [[0, 0], [1, 1], [1, 1], [0, 0]], mode="CONSTANT")
-        conv = tf.nn.conv2d(padded_input, filter, [1, stride, stride, 1], padding="VALID")
+        filter = tf.get_variable("filter", [4, 4, in_channels, out_channels],
+                                 dtype=tf.float32, initializer=tf.random_normal_initializer(0, 0.02))
+        padded_input = tf.pad(batch_input, [[0, 0], [1, 1], [
+                              1, 1], [0, 0]], mode="CONSTANT")
+        conv = tf.nn.conv2d(padded_input, filter, [
+                            1, stride, stride, 1], padding="VALID")
         return conv
+
 
 def lrelu(x, a):
     with tf.name_scope("lrelu"):
         x = tf.identity(x)
         return (0.5 * (1 + a)) * x + (0.5 * (1 - a)) * tf.abs(x)
+
 
 def batchnorm(input):
     with tf.variable_scope("batchnorm"):
@@ -20,12 +27,16 @@ def batchnorm(input):
         input = tf.identity(input)
 
         channels = input.get_shape()[3]
-        offset = tf.get_variable("offset", [channels], dtype=tf.float32, initializer=tf.zeros_initializer())
-        scale = tf.get_variable("scale", [channels], dtype=tf.float32, initializer=tf.random_normal_initializer(1.0, 0.02))
+        offset = tf.get_variable(
+            "offset", [channels], dtype=tf.float32, initializer=tf.zeros_initializer())
+        scale = tf.get_variable("scale", [
+                                channels], dtype=tf.float32, initializer=tf.random_normal_initializer(1.0, 0.02))
         mean, variance = tf.nn.moments(input, axes=[0, 1, 2], keep_dims=False)
         variance_epsilon = 1e-5
-        normalized = tf.nn.batch_normalization(input, mean, variance, offset, scale, variance_epsilon=variance_epsilon)
+        normalized = tf.nn.batch_normalization(
+            input, mean, variance, offset, scale, variance_epsilon=variance_epsilon)
         return normalized
+
 
 def build_discriminator(discrim_inputs, discrim_targets):
     n_layers = 3
@@ -58,4 +69,4 @@ def build_discriminator(discrim_inputs, discrim_targets):
         output = tf.sigmoid(convolved)
         layers.append(output)
 
-    return layers[-1],layers
+    return layers[-1], layers
