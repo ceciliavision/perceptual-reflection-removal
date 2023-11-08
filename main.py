@@ -17,7 +17,7 @@ parser.add_argument("--data_syn_dir", default="",
 parser.add_argument("--data_real_dir", default="", help="path to real dataset")
 parser.add_argument("--save_model_freq", default=1,
                     type=int, help="frequency to save model")
-parser.add_argument("--is_hyper", default=1, type=int,
+parser.add_argumenttf.disable_eager_execution()is_hyper", default=1, type=int,
                     help="use hypercolumn or not")
 parser.add_argument("--is_training", default=1, help="training or testing")
 parser.add_argument("--continue_training", action="store_true",
@@ -28,6 +28,8 @@ task = ARGS.task
 is_training = ARGS.is_training == 1
 continue_training = ARGS.continue_training
 hyper = ARGS.is_hyper == 1
+
+tf.disable_eager_execution()
 
 # os.system('nvidia-smi -q -d Memory |grep -A4 GPU|grep Free >tmp')
 if is_training:
