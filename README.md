@@ -26,7 +26,7 @@ This code is based on tensorflow. It has been tested on Ubuntu 16.04 LTS.
 
 #### Use our collected synthetic and real data
 
-Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1NYGL3wQ2pRkwfLMcV2zxXDV8JRSoVxwA?usp=sharing).
+Both synthetic and real dataset are now available [here](https://drive.google.com/drive/folders/1oGo4R4rZi_9VSgFFLG_WOrHFZtO3-AKw?usp=sharing).
 
 * synthetically blended data is created on-the-fly so there is only reflection layer and transmission layer folders
 * real data has blended images and ground truth transmission layer (*NO ground truth reflection layer*, reason is detailed in the paper)
@@ -71,7 +71,7 @@ For real data, since the ground truth reflection layer is not available, there i
 
 ## Testing
 
-* Download pre-trained model [here](https://drive.google.com/open?id=1I9e2r_e0Ap6ds4MYRwoamUUlz6PzXPPj)
+* Download pre-trained model [here](https://drive.google.com/file/d/1iA-yeHykhLpQUEnd2YbaO432C5IdMQrf/view?usp=sharing)
 * `$ tar -xvzf pre-trained.tar.gz`
 * this should extract the models into a newly created folder called `pre-trained`
 * Change `test_path` (line 419) to your test image folder. If you want to test on the provided test images (e.g. in `./test_images/real/`), keep it as it is.
